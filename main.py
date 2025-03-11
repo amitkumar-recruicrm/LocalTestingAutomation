@@ -1,14 +1,13 @@
 import pyodbc
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 # import urllib.parse
 from conditions import *
 from config import mysql_config
 from functions import * 
-import sqlite3
+# import sqlite3
 
-# encoded_password = urllib.parse.quote_plus('12345678')
-
+#connecting to databases
 platform = 'MySQL'
 
 if platform == 'MySQL':
@@ -16,6 +15,7 @@ if platform == 'MySQL':
     # f"mysql+mysqlconnector://{db_config['user']}:{encoded_password}@localhost/recruitcrm_normlized"
 elif platform == 'sqlserver':
     engine = create_engine(f"mssql+pyodbc://testAccount_2:12345678@localhost/fortisresourcesbh_cl?driver=ODBC+Driver+17+for+SQL+Server")
+
 
 db_name = mysql_config['database']
 def get_all_tables_and_columns(engine):
@@ -29,8 +29,11 @@ def get_all_tables_and_columns(engine):
 
 tblcol = pd.DataFrame(get_all_tables_and_columns(engine))
 
+# checklog_df - to store final result of all checks
+resPairs = []
 checklog_df = pd.DataFrame()
 
+# This loop checks all non-custom fields ??
 for table_name, df in tables.items():
     print('------------'+table_name+'-------------')
     for col, checks in df.items():
@@ -39,23 +42,24 @@ for table_name, df in tables.items():
             for check in checks:
                 if((check != '') & (check != 'mandatory')):
                     res = globals()["checkif_" + check.split(':')[0]](check,mysql_config['database'],table_name, col, engine, 'mysql','dbo')
-                    # print("%s %s"%(col, res))
-                    df = pd.concat([df, pd.DataFrame([{"Col Name": col, "Remark": res}])], ignore_index=True)
-                    # print(df)
+                    print("%s %s %s"%(col, check, res))
+                    resPairs.append((col, check, res))
         elif('mandatory' in checks.to_list()):
-            print(col + ''' : ERROR: doesn't exists''')
+            res = '''ERROR: doesn't exist'''
+            resPairs.append((col, check, res))
+            print(col + ' : ' + res)
 
-# for custom fields checking through tblextrafields query
+
+# # for custom fields checking through tblextrafields query
 if tblextrafields != '':
     # Connect to a SQLite database (or create it if it doesn't exist)
-    connection = sqlite3.connect('recruitcrm_normlized.db')
-
-    # Create a cursor object
-    cursor = connection.cursor()
+    # connection = sqlite3.connect('recruitcrm_normlized.db')
+    # cursor = connection.cursor()  # Create a cursor object
 
     # Define the SQL query to create the table
-    query = """
-    CREATE TABLE IF NOT EXISTS tblextrafields (
+    print("db_name: checkpoint 0")
+    query = text(f"""
+    CREATE TABLE IF NOT EXISTS {db_name}.tblextrafields (
         columnid INTEGER,
         accountid INTEGER,
         entitytypeid INTEGER,
@@ -63,42 +67,62 @@ if tblextrafields != '':
         extrafieldtype TEXT,
         defaultvalue TEXT
     )
-    """
+    """)
 
     # Execute the query
-    cursor.execute(query)
-    connection.commit()
+    # cursor.execute(query)
+    # connection.commit()
+    print("db_name: checkpoint 1")
+
+
+    with engine.connect() as connection:
+        connection.execute(query)
 
   # Execute each statement separately
     for statement in tblextrafields.strip().split(';'):
         if statement.strip():  # Check if the statement is not empty
-            cursor.execute(statement)
-    connection.commit()
+            with engine.connect() as connection:
+                connection.execute(text(statement))
+                connection.commit()  # Commit changes manually
+        #     cursor.execute(statement)
+        #  connection.commit()
 
     custom_tables = {
-        2: 'contact_custom_field_data',
-        3: 'company_custom_field_data',
-        4: 'job_custom_field_data',
-        5: 'candidate_custom_field_data'
+        2: 'contact_custom_data',
+        3: 'company_custom_data',
+        4: 'job_custom_data',
+        5: 'candidate_custom_data'
     }
+    print("db_name: checkpoint 2")
         # Query to select all records from tblextrafields
-    select_query = "SELECT * FROM tblextrafields"
-    cursor.execute(select_query)
-    records = cursor.fetchall()
+    select_query = text(f"SELECT * FROM " + db_name + ".tblextrafields")
+    # cursor.execute(select_query)
+    # records = cursor.fetchall()
+    with engine.connect() as connection:
+        result = connection.execute(select_query)
+        records = result.fetchall()
     
     for record in records:
         for check in extrafieldchecks[record[4]]:
             if(check!=''):
-                print("%s %s"%('custcolumn' + str(record[0]), globals()["checkif_" + check.split(':')[0]](check,mysql_config['database'],custom_tables[record[2]], 'custcolumn' + str(record[0]), engine, 'mysql','dbo')))
+                col = 'custcolumn' + str(record[0])
+                res = globals()["checkif_" + check.split(':')[0]](check,mysql_config['database'],custom_tables[record[2]], 'custcolumn' + str(record[0]), engine, 'mysql','dbo')
+                print("%s %s"%(col, res))
+                resPairs.append((col, check, res))
 
 
-
-    drop_table_query = "DROP TABLE IF EXISTS tblextrafields;"
-    cursor.execute(drop_table_query)
+    drop_table_query = text("DROP TABLE IF EXISTS tblextrafields;")
+    # cursor.execute(drop_table_query)
+    with engine.connect() as connection:
+        result = connection.execute(drop_table_query)
     connection.commit()
 
-    cursor.close()
+    # cursor.close()
     connection.close()
+
+# print(resPairs)
+pd.DataFrame(resPairs, columns=['Column', 'Check', 'Result']).to_csv('checklog2.csv', index=False)
+# checklog_df.to_csv('checklog.csv', index=False)
 
 
 

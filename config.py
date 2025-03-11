@@ -3,7 +3,7 @@ mysql_config = {
     'user': 'root',
     'password': '12345678',
     'host': 'localhost',
-    'database': 'KJandAssociates_CL'
+    'database': 'AlturaPartnersLX_CL2'
 }
 
 # SQL Server database connection configuration

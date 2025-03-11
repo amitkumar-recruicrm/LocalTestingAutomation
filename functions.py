@@ -13,7 +13,8 @@ def checkif_unique(check,db_name, table_name, column_name, engine, db_type = 'sq
         query = f"select {column_name} from recruitcrm_normlized.dbo.{table_name}"
     df = pd.read_sql(query, engine)
     return df[column_name].is_unique
- 
+
+# column should not contain any blank or NULL values
 def checkif_notNull(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema = 'dbo'):
     if db_type == 'mysql':
         query = f"select {column_name} from {db_name}.{table_name}"
@@ -21,6 +22,16 @@ def checkif_notNull(check,db_name, table_name, column_name, engine, db_type = 's
         query = f"select {column_name} from recruitcrm_normlized.dbo.{table_name}"
     df = pd.read_sql(query, engine)
     return not ( df[column_name].isnull().any() or (df[column_name] == '').any() )
+
+# checks if character length of column exceeding the limit
+def checkif_length(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema = 'dbo'):
+    if db_type == 'mysql':
+        query = f"select {column_name} from {db_name}.{table_name}"
+    elif db_type == 'sqlserver':
+        query = f"select {column_name} from recruitcrm_normlized.dbo.{table_name}"
+    df = pd.read_sql(query, engine)
+    return not ( df[column_name].str.len().max() > int(check.split(':')[1]))
+
 
 def checkif_followsPattern(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):
     query = f"select {column_name} from {db_name}.{table_name} where {column_name} not regexp '{check.split(':')[1]}' and {column_name} != ''"
