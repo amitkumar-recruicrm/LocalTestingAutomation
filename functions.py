@@ -1,4 +1,5 @@
 import pandas as pd
+from sqlalchemy import text
 
 type_mapping = {
     'int': int,
@@ -51,6 +52,49 @@ def checkif_dropdown(check,db_name, table_name, column_name, engine, db_type = '
     query = f"select {column_name} from {db_name}.{table_name} where {column_name} != '' and {column_name} not in  ('{condition}')"
     df = pd.read_sql(query, engine)
     return df[column_name].empty
+
+def checkif_multiselect(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):
+    condition = check.split(':')[1].replace(",","','")
+    print("-----------------")
+    print(condition)
+    print("-----------------")
+    # query = f"select {column_name} from {db_name}.{table_name} where {column_name} != '' and {column_name} not in  ('{condition}')"
+    query = f"""
+        WITH RECURSIVE cte AS (
+            -- Initial row extraction
+            SELECT 
+                import_slug,
+                TRIM(SUBSTRING_INDEX({column_name}, ',', 1)) AS value,
+                SUBSTRING({column_name}, LOCATE(',', {column_name}) + 1) AS remaining
+            FROM {db_name}.{table_name}
+            
+            UNION ALL
+            
+            -- Recursive extraction of remaining values
+            SELECT 
+                import_slug,
+                TRIM(SUBSTRING_INDEX(remaining, ',', 1)) AS value,
+                CASE 
+                    WHEN LOCATE(',', remaining) > 0 
+                    THEN SUBSTRING(remaining, LOCATE(',', remaining) + 1) 
+                    ELSE NULL 
+                END AS remaining  -- Avoids infinite loop
+            FROM cte
+            WHERE remaining IS NOT NULL AND remaining != ''
+        )
+        SELECT DISTINCT value as {column_name}
+        FROM cte
+        WHERE value NOT IN ('{condition}')
+        ;
+        """
+
+    
+    with engine.connect() as connection:
+        connection.execute(text("SET SESSION cte_max_recursion_depth = 50000;")) 
+
+    df = pd.read_sql(query, engine)
+    return df[column_name].empty
+
 
 # def checkif_followsPattern(table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):
 #     if db_type == 'mysql':

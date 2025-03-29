@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Replace with your actual file path
-file_path = "/Users/amit/Documents/Work/Data Migrations/in progress/Altura Partners (Loxo)/Initial_data 51057 (Altura Partners Ltd) 3.xlsx" 
+file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Altura Partners (Loxo)/Initial_data 51057 (Altura Partners Ltd) 3.xlsx" 
 
 # Load all sheets as a dictionary of DataFrames
 dfs = pd.read_excel(file_path, sheet_name=None)
@@ -38,13 +38,100 @@ candidate_data = pd.DataFrame({
 })
 
 candidate_custom_field_data = pd.DataFrame({
-    "import_slug" : ['notNull',''],
-    "candidate_id" : ['notNull','mandatory'],
+    "import_slug" : ['notNull','mandatory'],
+    "candidate_id" : ['notNull','mandatory'], 
 })
 
 company_data = pd.DataFrame({
-    "createdon" : ['notNull',''],
-    "slug" : ['unique', 'notNull']
+    "createdon" : ['notNull','',''],
+    "slug" : ['unique', 'notNull',''],
+    "industryid" : ['datatype:int', '',''],
+    "companyname" : ['mandatory', 'notNull','length:300'],
+    "address": ['length:500','',''],
+    "createdon": ['notNull','mandatory',''],
+    "updatedon": ['notNull','mandatory',''],
+    "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
+    "city" : ['','','length:50'],
+    "aboutcompany" : ['','','length:5000'],
+})
+
+company_custom_field_data = pd.DataFrame({
+    "import_slug" : ['notNull','mandatory'],
+    "company_id" : ['notNull','mandatory'], 
+})
+
+contact_data = pd.DataFrame({
+    "migration_reserved1" : ['notNull','mandatory','unique'],
+    "firstname" : ['notNull','mandatory','length:60'],
+    "lastname" : ['','','length:60'],
+    "city" : ['','','length:50'],
+    "slug" :      ['unique', 'notNull',''],
+    "email"   : ['followsPattern:.*@.*[.].*','',''],
+    "contactnumber" : ['followsPattern:[0-9]+','',''],
+    "designation": ['length:100','',''],
+    "address": ['length:500','',''],
+    "createdon": ['notNull','mandatory',''],
+    "updatedon": ['notNull','mandatory',''],
+    "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
+})
+
+contact_custom_field_data = pd.DataFrame({
+    "import_slug" : ['notNull','mandatory'],
+    "contact_id" : ['notNull','mandatory'], 
+})
+
+job_data = pd.DataFrame({
+    "migration_reserved1" : ['notNull','mandatory','unique'],
+    "name" : ['notNull','mandatory','length:300'],
+    "locality" : ['','','length:50'],
+    "city" : ['','','length:50'],
+    "state" : ['','','length:50'],
+    "country" : ['','','length:50'],
+    "postalcode" : ['','','length:20'],
+    "slug" :      ['unique', 'notNull',''],
+    "designation": ['length:100','',''],
+    "address": ['length:500','',''],
+    "salarytype": ['dropdown:annual,monthly,weekly,daily,hourly','',''],
+    "job_type": ['dropdown:parttime,fulltime,contract,contracttopermanent','',''],
+    "job_category": ['length:100','',''],
+    "minexperienceinyears": ['datatype:int','',''],
+    "maxexperienceinyears": ['datatype:int','',''],
+    "annualsalarymin": ['datatype:int','',''],
+    "annualsalarymax": ['datatype:int','',''],
+    "createdon": ['notNull','mandatory',''],
+    "updatedon": ['notNull','mandatory',''],
+    "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
+})
+
+job_custom_field_data = pd.DataFrame({
+    "import_slug" : ['notNull','mandatory'],
+    "job_id" : ['notNull','mandatory'], 
+})
+
+deal_data = pd.DataFrame({
+    "migration_reserved1" : ['notNull','mandatory','unique'],
+    "name" : ['notNull','mandatory','length:300'],
+    "dealvalue" : ['notNull','mandatory','datatype:int'],
+    "slug" :  ['unique', 'notNull',''],
+    "dealtype": ['dropdown:1,2','',''],
+    "closedate": ['notNull','mandatory',''],
+    "createdon": ['notNull','mandatory',''],
+    "updatedon": ['notNull','mandatory',''],
+    "dealstage": ['notNull','mandatory','dropdown:'+",".join(dfs["deal_stage_mapping"]["id"].astype(str).tolist())],
+    "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
+})
+
+deal_custom_field_data = pd.DataFrame({
+    "import_slug" : ['notNull','mandatory'],
+    "deal_id" : ['notNull','mandatory'], 
 })
 
 # tables = {
@@ -54,18 +141,25 @@ company_data = pd.DataFrame({
 # }
 
 extrafieldchecks = pd.DataFrame({
-    "dropdown" : ['dropdown:A,B,C',''],
-    "multiselect" : ['dropdown:Ab,Bc', ''],
+    "dropdown" : ['dropdown',''],
+    "multiselect" : ['multiselect', ''],
     "text" : ['length:2000', ''],
     "email" : ['followsPattern:.*@.*[.].*', ''],
-    "phonenumber" : ['', ''],
-    "number" : ['', '']
+    "phonenumber" : ['followsPattern:[0-9]+', ''],
+    "number" : ['datatype:float', '']
 })
 
 tables = {
     "candidate": candidate_data, 
     "candidate_custom_data": candidate_custom_field_data,
-    "company": company_data
+    "company": company_data,
+    "company_custom_data": company_custom_field_data,
+     "contact": contact_data,
+    "contact_custom_data": contact_custom_field_data,
+     "job": job_data,
+    "job_custom_data": job_custom_field_data,
+    "deal": deal_data,
+    "deal_custom_data": deal_custom_field_data,
 }
 
 tblextrafields = """

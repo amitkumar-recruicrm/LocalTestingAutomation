@@ -30,7 +30,25 @@ def get_all_tables_and_columns(engine):
 tblcol = pd.DataFrame(get_all_tables_and_columns(engine))
 
 # checklog_df - to store final result of all checks
-resPairs = []
+resPairsCandidate = []
+resPairsCompany = []
+resPairsContact = []
+resPairsJob = []
+resPairsDeal = []
+
+def logToExcel(tblname, col, check, res):
+    if tblname == 'candidate' or tblname == 'candidate_custom_data':
+        resPairsCandidate.append((col, check, res))
+    if tblname == 'company' or tblname == 'company_custom_data':
+        resPairsCompany.append((col, check, res))
+    if tblname == 'contact' or tblname == 'contact_custom_data':
+        resPairsContact.append((col, check, res))
+    if tblname == 'job' or tblname == 'job_custom_data':
+        resPairsJob.append((col, check, res))
+    if tblname == 'deal' or tblname == 'deal_custom_data':
+        resPairsDeal.append((col, check, res))
+    
+
 checklog_df = pd.DataFrame()
 
 # This loop checks all non-custom fields ??
@@ -43,10 +61,12 @@ for table_name, df in tables.items():
                 if((check != '') & (check != 'mandatory')):
                     res = globals()["checkif_" + check.split(':')[0]](check,mysql_config['database'],table_name, col, engine, 'mysql','dbo')
                     print("%s %s %s"%(col, check, res))
-                    resPairs.append((col, check, res))
+                    logToExcel(table_name, col, check, res)
+                    # resPairs.append((col, check, res))
         elif('mandatory' in checks.to_list()):
             res = '''ERROR: doesn't exist'''
-            resPairs.append((col, check, res))
+            # resPairsCandidate.append(table_name, col, check, res)
+            logToExcel(table_name, col, check, res)
             print(col + ' : ' + res)
 
 
@@ -106,9 +126,11 @@ if tblextrafields != '':
         for check in extrafieldchecks[record[4]]:
             if(check!=''):
                 col = 'custcolumn' + str(record[0])
+                check = check if check != 'dropdown' and check != 'multiselect' else check+':'+str(record[5])
                 res = globals()["checkif_" + check.split(':')[0]](check,mysql_config['database'],custom_tables[record[2]], 'custcolumn' + str(record[0]), engine, 'mysql','dbo')
-                print("%s %s"%(col, res))
-                resPairs.append((col, check, res))
+                print("%s %s %s"%(col, check, res))
+                # resPairs.append((col, check, res))
+                logToExcel(custom_tables[record[2]], col, check, res)
 
 
     drop_table_query = text("DROP TABLE IF EXISTS tblextrafields;")
@@ -121,8 +143,18 @@ if tblextrafields != '':
     connection.close()
 
 # print(resPairs)
-pd.DataFrame(resPairs, columns=['Column', 'Check', 'Result']).to_csv('checklog2.csv', index=False)
+# pd.DataFrame(resPairsCandidate, columns=['Column', 'Check', 'Result']).to_csv('checklog2.csv', index=False)
 # checklog_df.to_csv('checklog.csv', index=False)
+
+excel_path = "output.xlsx"
+with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
+    pd.DataFrame(resPairsCandidate, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Candidate', index=False)  # Sheet 1
+    pd.DataFrame(resPairsCompany, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Company', index=False)   # Sheet 2
+    pd.DataFrame(resPairsContact, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Contact', index=False)   # Sheet 2
+    pd.DataFrame(resPairsJob, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Job', index=False)   # Sheet 2
+    pd.DataFrame(resPairsDeal, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='deal', index=False)   # Sheet 2
+    # resPairsCompany.to_excel(writer, sheet_name='Contact', index=False)   # Sheet 2
+    # resPairsJob.to_excel(writer, sheet_name='Job', index=False)   # Sheet 2
 
 
 
