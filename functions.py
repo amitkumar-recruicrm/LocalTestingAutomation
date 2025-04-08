@@ -53,6 +53,12 @@ def checkif_dropdown(check,db_name, table_name, column_name, engine, db_type = '
     df = pd.read_sql(query, engine)
     return df[column_name].empty
 
+def checkif_followsCondition(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):
+    condition = check.split(':')[1]
+    query = f"select {column_name} from {db_name}.{table_name} where not ({condition})"
+    df = pd.read_sql(query, engine)
+    return df[column_name].empty
+
 def checkif_multiselect(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):
     condition = check.split(':')[1].replace(",","','")
     print("-----------------")

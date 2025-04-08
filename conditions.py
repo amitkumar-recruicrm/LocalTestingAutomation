@@ -1,6 +1,6 @@
 import pandas as pd
 
-# Replace with your actual file path
+# Replace with your actual file path for xlsx file of Initial data download from retool.
 file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Altura Partners (Loxo)/Initial_data 51057 (Altura Partners Ltd) 3.xlsx" 
 
 # Load all sheets as a dictionary of DataFrames
@@ -30,10 +30,11 @@ candidate_data = pd.DataFrame({
     "lastorganisation": ['length:300','',''],
     "position": ['length:100','',''],
     "address": ['length:500','',''],
-    "createdon": ['notNull','mandatory',''],
+    "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
     "updatedon": ['notNull','mandatory',''],
     "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
 })
 
@@ -48,10 +49,11 @@ company_data = pd.DataFrame({
     "industryid" : ['datatype:int', '',''],
     "companyname" : ['mandatory', 'notNull','length:300'],
     "address": ['length:500','',''],
-    "createdon": ['notNull','mandatory',''],
+    "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
     "updatedon": ['notNull','mandatory',''],
     "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
     "city" : ['','','length:50'],
     "aboutcompany" : ['','','length:5000'],
@@ -72,10 +74,11 @@ contact_data = pd.DataFrame({
     "contactnumber" : ['followsPattern:[0-9]+','',''],
     "designation": ['length:100','',''],
     "address": ['length:500','',''],
-    "createdon": ['notNull','mandatory',''],
+    "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
     "updatedon": ['notNull','mandatory',''],
     "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
 })
 
@@ -102,10 +105,11 @@ job_data = pd.DataFrame({
     "maxexperienceinyears": ['datatype:int','',''],
     "annualsalarymin": ['datatype:int','',''],
     "annualsalarymax": ['datatype:int','',''],
-    "createdon": ['notNull','mandatory',''],
+    "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
     "updatedon": ['notNull','mandatory',''],
     "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
 })
 
@@ -114,24 +118,62 @@ job_custom_field_data = pd.DataFrame({
     "job_id" : ['notNull','mandatory'], 
 })
 
+job_assignment_data = pd.DataFrame({
+    "share" : ['notNull','mandatory',''],
+    "candidatename" : ['notNull','mandatory',''],
+    "candidateslug" : ['notNull','mandatory',''],
+    "jobname" : ['notNull','mandatory',''],
+    "jobslug" : ['notNull','mandatory',''],
+    "companyname" : ['','mandatory',''],
+    "companyslug" : ['','mandatory',''],
+    "contactname" : ['','mandatory',''],
+    "contactslug" : ['','mandatory',''],
+    "remark" : ['','length:10000',''],
+    "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
+    "updatedon": ['notNull','mandatory',''],
+    "stagedate": ['notNull','mandatory',''],
+    "candidatestatusid": ['notNull','mandatory','dropdown:'+",".join(dfs["candidate_status_mapping"]["id"].astype(str).tolist())],
+    "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
+})
+
 deal_data = pd.DataFrame({
     "migration_reserved1" : ['notNull','mandatory','unique'],
     "name" : ['notNull','mandatory','length:300'],
     "dealvalue" : ['notNull','mandatory','datatype:int'],
     "slug" :  ['unique', 'notNull',''],
     "dealtype": ['dropdown:1,2','',''],
-    "closedate": ['notNull','mandatory',''],
+    "closedate": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
     "createdon": ['notNull','mandatory',''],
     "updatedon": ['notNull','mandatory',''],
     "dealstage": ['notNull','mandatory','dropdown:'+",".join(dfs["deal_stage_mapping"]["id"].astype(str).tolist())],
     "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
     "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
 })
 
 deal_custom_field_data = pd.DataFrame({
     "import_slug" : ['notNull','mandatory'],
     "deal_id" : ['notNull','mandatory'], 
+})
+
+note_data = pd.DataFrame({
+    "relatedto" : ['notNull','mandatory',''],
+    "relatedtotypeid" : ['notNull','mandatory','dropdown:2,3,4,5,11'],
+    "relatedtoname" : ['notNull','mandatory',''],
+    "type" :  ['mandatory', 'notNull',''],
+    "description": ['length:10000','',''],
+    "creatorname": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["Name"].astype(str).tolist())],
+    "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
+    "updatedon": ['notNull','mandatory',''],
+    "notetype": ['notNull','mandatory','dropdown:'+",".join(dfs["note_type_mapping"]["id"].astype(str).tolist())],
+    "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "updatedby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "ownerid": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
+    "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
 })
 
 # tables = {
@@ -154,12 +196,19 @@ tables = {
     "candidate_custom_data": candidate_custom_field_data,
     "company": company_data,
     "company_custom_data": company_custom_field_data,
-     "contact": contact_data,
+    "contact": contact_data,
     "contact_custom_data": contact_custom_field_data,
-     "job": job_data,
+    "job": job_data,
     "job_custom_data": job_custom_field_data,
+    "job_assignment": job_assignment_data,
     "deal": deal_data,
     "deal_custom_data": deal_custom_field_data,
+    "note": note_data,
+    "note_candidate": note_data,
+    "note_company": note_data,
+    "note_contact": note_data,
+    "note_job": note_data,
+    "note_deal": note_data,
 }
 
 tblextrafields = """

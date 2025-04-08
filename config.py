@@ -8,8 +8,8 @@ mysql_config = {
 
 # SQL Server database connection configuration
 sqlserver_config = {
-    'server': 'DESKTOP-30UUDPV',
-    'database': 'Urbanlinkerfinal',
-    'user': 'jayp',
-    'password': '1234'
+    'server': 'localhost',
+    'database': 'Origin_CL',
+    'user': 'sa',
+    'password': 'Amit@1234'
 }

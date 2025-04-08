@@ -3,27 +3,37 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 # import urllib.parse
 from conditions import *
-from config import mysql_config
+from config import mysql_config, sqlserver_config
 from functions import * 
 # import sqlite3
 
 #connecting to databases
+# platform = 'sqlserver'
 platform = 'MySQL'
 
 if platform == 'MySQL':
     engine = create_engine(f"mysql+mysqlconnector://{mysql_config['user']}:{mysql_config['password']}@{mysql_config['host']}/{mysql_config['database']}")
     # f"mysql+mysqlconnector://{db_config['user']}:{encoded_password}@localhost/recruitcrm_normlized"
 elif platform == 'sqlserver':
-    engine = create_engine(f"mssql+pyodbc://testAccount_2:12345678@localhost/fortisresourcesbh_cl?driver=ODBC+Driver+17+for+SQL+Server")
+    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{sqlserver_config['password']}@localhost/{sqlserver_config['database']}?driver=ODBC+Driver+17+for+SQL+Server")
 
 
 db_name = mysql_config['database']
+
 def get_all_tables_and_columns(engine):
-    query = f"""
-        SELECT TABLE_NAME, COLUMN_NAME
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = '{db_name}'
-        """
+    query = ''
+    if platform == 'MySQL':
+        query = f"""
+            SELECT TABLE_NAME, COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = '{db_name}'
+            """
+    elif platform == 'sqlserver':
+        query = f"""
+            SELECT TABLE_NAME, COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_CATALOG = 'origin_cl'
+            """
     # print(pd.read_sql(query, conn))
     return pd.read_sql(query, engine)
 
@@ -35,6 +45,8 @@ resPairsCompany = []
 resPairsContact = []
 resPairsJob = []
 resPairsDeal = []
+resPairsNote = []
+resPairsAssignment = []
 
 def logToExcel(tblname, col, check, res):
     if tblname == 'candidate' or tblname == 'candidate_custom_data':
@@ -45,8 +57,12 @@ def logToExcel(tblname, col, check, res):
         resPairsContact.append((col, check, res))
     if tblname == 'job' or tblname == 'job_custom_data':
         resPairsJob.append((col, check, res))
+    if tblname == 'job_assignment':
+        resPairsAssignment.append((col, check, res))
     if tblname == 'deal' or tblname == 'deal_custom_data':
         resPairsDeal.append((col, check, res))
+    if 'note' in tblname :
+        resPairsNote.append((col, check, res))
     
 
 checklog_df = pd.DataFrame()
@@ -72,12 +88,8 @@ for table_name, df in tables.items():
 
 # # for custom fields checking through tblextrafields query
 if tblextrafields != '':
-    # Connect to a SQLite database (or create it if it doesn't exist)
-    # connection = sqlite3.connect('recruitcrm_normlized.db')
-    # cursor = connection.cursor()  # Create a cursor object
 
     # Define the SQL query to create the table
-    print("db_name: checkpoint 0")
     query = text(f"""
     CREATE TABLE IF NOT EXISTS {db_name}.tblextrafields (
         columnid INTEGER,
@@ -148,11 +160,13 @@ if tblextrafields != '':
 
 excel_path = "output.xlsx"
 with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
-    pd.DataFrame(resPairsCandidate, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Candidate', index=False)  # Sheet 1
-    pd.DataFrame(resPairsCompany, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Company', index=False)   # Sheet 2
-    pd.DataFrame(resPairsContact, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Contact', index=False)   # Sheet 2
-    pd.DataFrame(resPairsJob, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Job', index=False)   # Sheet 2
-    pd.DataFrame(resPairsDeal, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='deal', index=False)   # Sheet 2
+    pd.DataFrame(resPairsCandidate, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Candidate', index=False) 
+    pd.DataFrame(resPairsCompany, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Company', index=False) 
+    pd.DataFrame(resPairsContact, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Contact', index=False)  
+    pd.DataFrame(resPairsJob, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Job', index=False)  
+    pd.DataFrame(resPairsAssignment, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Assignment', index=False)  
+    pd.DataFrame(resPairsDeal, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='deal', index=False)  
+    pd.DataFrame(resPairsNote, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='note', index=False)   
     # resPairsCompany.to_excel(writer, sheet_name='Contact', index=False)   # Sheet 2
     # resPairsJob.to_excel(writer, sheet_name='Job', index=False)   # Sheet 2
 
