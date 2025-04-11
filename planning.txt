@@ -1,3 +1,4 @@
-to add
 
-1. can we just merge notNull and mandatory checks??
+ENHANCEMENT TO ADD:
+ 1. job_associated_costum_field 
+ 2. if deactivated_users are used then will output false.

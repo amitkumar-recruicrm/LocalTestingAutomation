@@ -9,7 +9,7 @@ mysql_config = {
 # SQL Server database connection configuration
 sqlserver_config = {
     'server': 'localhost',
-    'database': 'Origin_CL',
+    'database': 'BAW_CL',
     'user': 'sa',
     'password': 'Amit@1234'
 }

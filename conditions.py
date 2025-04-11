@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Replace with your actual file path for xlsx file of Initial data download from retool.
-file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Altura Partners (Loxo)/Initial_data 51057 (Altura Partners Ltd) 3.xlsx" 
+file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Brown and Wills. (Bullhorn)/Initial_data 60297 (Brown and Wills Recruitment Lt) 2.xlsx" 
 
 # Load all sheets as a dictionary of DataFrames
 dfs = pd.read_excel(file_path, sheet_name=None)
@@ -19,8 +19,8 @@ candidate_data = pd.DataFrame({
     "state" : ['','','length:50'],
     "country" : ['','','length:50'],
     "slug" :      ['unique', 'notNull',''],
-    "emailid"   : ['followsPattern:.*@.*[.].*','',''],
-    "contactnumber" : ['followsPattern:[0-9]+','',''],
+    "emailid"   : ['followsPattern:.*@.*[.].*:%_@%_.%','',''],
+    "contactnumber" : ['followsPattern:[0-9]+:%[0-9]%','',''],
     "willingtorelocate": ['datatype:int','',''],
     "genderid": ['dropdown:0,1,2','',''],
     "salarytype": ['dropdown:1,2,3,4,5','',''],
@@ -70,8 +70,8 @@ contact_data = pd.DataFrame({
     "lastname" : ['','','length:60'],
     "city" : ['','','length:50'],
     "slug" :      ['unique', 'notNull',''],
-    "email"   : ['followsPattern:.*@.*[.].*','',''],
-    "contactnumber" : ['followsPattern:[0-9]+','',''],
+    "email"   : ['followsPattern:.*@.*[.].*:%_@%_.%','',''],
+    "contactnumber" : ['followsPattern:[0-9]+:%[0-9]%','',''],
     "designation": ['length:100','',''],
     "address": ['length:500','',''],
     "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
@@ -103,8 +103,9 @@ job_data = pd.DataFrame({
     "job_category": ['length:100','',''],
     "minexperienceinyears": ['datatype:int','',''],
     "maxexperienceinyears": ['datatype:int','',''],
-    "annualsalarymin": ['datatype:int','',''],
-    "annualsalarymax": ['datatype:int','',''],
+    "annualsalarymin": ['datatype:float','',''],
+    "annualsalarymax": ['datatype:float','',''],
+    "jobstatus": ['notNull','mandatory','dropdown:'+",".join(dfs["job_status_mapping"]["id"].astype(str).tolist())],
     "createdon": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
     "updatedon": ['notNull','mandatory',''],
     "createdby": ['notNull','mandatory','dropdown:'+",".join(dfs["user_details"]["id"].astype(str).tolist())],
@@ -142,7 +143,7 @@ job_assignment_data = pd.DataFrame({
 deal_data = pd.DataFrame({
     "migration_reserved1" : ['notNull','mandatory','unique'],
     "name" : ['notNull','mandatory','length:300'],
-    "dealvalue" : ['notNull','mandatory','datatype:int'],
+    "dealvalue" : ['notNull','mandatory','datatype:float'],
     "slug" :  ['unique', 'notNull',''],
     "dealtype": ['dropdown:1,2','',''],
     "closedate": ['notNull','mandatory','followsCondition:createdon<=updatedon'],
@@ -186,9 +187,11 @@ extrafieldchecks = pd.DataFrame({
     "dropdown" : ['dropdown',''],
     "multiselect" : ['multiselect', ''],
     "text" : ['length:2000', ''],
-    "email" : ['followsPattern:.*@.*[.].*', ''],
-    "phonenumber" : ['followsPattern:[0-9]+', ''],
-    "number" : ['datatype:float', '']
+    "email" : ['followsPattern:.*@.*[.].*:%_@%_.%', ''],
+    "phonenumber" : ['followsPattern:[0-9]+:%[0-9]%', ''],
+    "number" : ['datatype:float', ''],
+    "date" : ['datatype:int', ''],
+    "longtext" : ['length:5000', ''],
 })
 
 tables = {
@@ -211,44 +214,59 @@ tables = {
     "note_deal": note_data,
 }
 
+#  ⚠️ Insert statements should only include columns that are present in the database.
 tblextrafields = """
 
--- Altura Partners
+-- brown and wills
 
--- CANDIDATE 
 insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(1,51057,5,'Location','text',null), 
-(2,51057,5,'Candidate Source','dropdown','Linkedin inmail,Liknkedin Job Advert,Data Import,Referral,Network,Event'),
-(3,51057,5,'Secondary Emails','text',null),
-(4,51057,5,'Phone Type','dropdown','Personal,Work,Other'),
-(5,51057,5,'Secondary Phones','text',null),
-(6,51057,5,'Social URLs','text',null);
+(2, 1343554,5,'Notice','dropdown','3 Months,4 Weeks,1 Week,IMMEDIATE,6 Months,1 Month,2 Weeks,2 Months,3 Weeks'),
+(1, 1343554,5,'Industry','multiselect','Building,Civils,Residential,Social Housing,M & E,Modular,Consultancy,Sub-Contractor'),
+(3, 1343554,5,'Tags','multiselect','Education,Health,Commerial,Industrial,Retail,Leisure,Heritage,MOD,MOJ,Major Projects,Highrise,Frameworks,Refurbs,Smallworks,Fit-Out,H & S,Maintenance,Joinery,Brickwork,Architecture,Nuclear,Infrastructure,BIM,Conquest,ASTSA,Building Regs,3DModelling,Tier 1,Medium Contractor,Astra,Bridges,Building,Car Showroom,Carehome,Civils,Cleansed,CSCS,Data centres,Datacentres,Electrical,Energy,Excavation,Groundworks,Health and Safety,Heavy Civils,High Rise,Hotel,HVAC,Listed Building,Luxury Housing,Major Project,Marine,Mechanical,MEP,Modular,Office,Pipelines,Power,Public Health,Rail,Refurb,Regional,Regional Contractor,Remove from database,Renewables,Residential,Sheds,Small Contractor,Small Works,SMSTS,Social Houseing,Social Housing,Social Housing (New Build),Social Housing (Refurb),Spec Housing,Trades,Universities,University,Xmas 2023 KIT'),
+(5, 1343554,5,'Other Source','dropdown','LinkedIN,CV Library Search,Database Search,Referral,Previous Placement,Website Response,Client Contact,Already KnownData,ContactOut,CV Library,CV Library Ad,CV Library Watchdog,Glennigans,Headhunt,Indeed,Other,Total Jobs,Web Registration'),
+(8, 1343554,5,'Other Info','longtext',null),
+(9, 1343554,5,'Status','dropdown','To be confirmed,Active,Keep in touch,Immediate,Unknown,Asked not to be contacted'),
+(10, 1343554,5,'Day Rate','number',null),
+(11, 1343554,5,'Desired Job','longtext',null),
+(12,1343554,5,'Phone','text',null), 
+(13,1343554,5,'WorkPhone','text',null),
+(14,1343554,5,'Name Prefix','text',null),
+(15,1343554,5,'Date Last Comment','date',null),
+(12,1343554,5,'Phone','text',null), 
+(13,1343554,5,'WorkPhone','text',null),
+(14,1343554,5,'Name Prefix','text',null),
+(15,1343554,5,'Date Last Comment','date',null),
+(16,1343554,5,'Other Contact Status','text',null)
+;
+
 
  -- COMPANY
 insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(1,51057,3,'Address Type','dropdown','Main'),
-(2,51057,3,'Emails','email',null),
-(3,51057,3,'Email Type','dropdown','Work'),
-(4,51057,3,'Phones','phonenumber',null);
-
-
- -- CONTACT
-insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(1,51057,2,'Secondary Emails','email',null),
-(2,51057,2,'Email Type','dropdown','Work,Other'),
-(3,51057,2,'Lists','multiselect','15sep20x1,18thSep2020,28thSep,9sep20,9sep20x3,9sep20x5,9sep20x6,Agency,AI,Ai Cyber Security BD,AI enrichment | CEO/Founder,AI enrichment | Customer Success,AI enrichment | HR & TA,AI enrichment | Marketing,AI enrichment | Presales,AI enrichment | Product,AI enrichment | Sales,AM - DevSecOps BD,AM America,AM Asia,AM Europe,AM UK,Anti-Ransomware BD,AP Automation enrichment | CEO/Owner,AP Automation enrichment | CS,AP Automation enrichment | HR/TA,AP Automation enrichment | Marketing,AP Automation enrichment | Presales,AP Automation enrichment | Product,AP Automation enrichment | Sales,AP, AR Automation Mailshot BD,API Security Mailshot,Application Defence Platform BD,ASIC - Denmark,ASPM BD,Automated Security Workflow BD,Automated Threat Modelling BD,Badams | Insight | Product,BD,BD calls Observability,BD List 11/22,BD USA,ben Identity,Ben P - Candidates - Cyber MSSP,Ben P - Candidates - Reseller,Ben P - Consultancy,Ben P - Cyber Consultancy,Ben P - Cyber Managers to spec into,ben p - Cyber Marketing,Ben P - Cyber Vendor Channel,Ben P - Data Security,Ben P - Digital Forensics,Ben P - Distributors,Ben P - MSSPs,Ben P - MSSPs 2,Ben P - Reseller Sales Directors,Ben P - Resellers,Ben P - Resellers Midlands,Ben P - Resellers North,Ben P - Resellers South,Ben P - Threat Intel,Ben P - Warm Leads,Ben P - XDR,Ben P 20 target accounts,Ben P 2023,Ben P Anti-Fraud,Ben P December BD List,Ben P IAM,Ben P IoT,Ben P Jan Call List,Ben P MDR,Ben P MPCs,Ben P Threat Intel,Ben P US List,Ben P Verification,Big City Digital Design and Verification,Billing, AR, Payments and Billing solution BD,Bot Management Software,Buy-now-pay-later BD,CAASM BD,california,Call sprint - US,Call Sprint - USA,Call sprint list Lindae EMEA,candidates - CDW,Candidates for 2023,Cash Flow Forecasting BD,Cash Flow Management,Chase Old Relex People,CJ 0 - Targets,CJ 1 - Leads,CJ 2- Callback,CJ 3 - Chasing Engaged,CJ 4 - Live,Claud Fraud List,Claud Identity Manager List,Cloud Security BD,Cool Vendors,Crisis Management BD,CRO USA,CSM BD Outreach,Currency Cloud,CX,Cyber CRO - US (Anthony),Cyber Risk Assessment software,Cyber Training BD,Cybersec Software General BD,Cybersecurity PS Salespeople,Damo | EAM | Customer Success,Damo | EAM | Founder,Damo | EAM | Marketing,Damo | EAM | Product,Damo | EAM | Sales,Damo | EAM | TA/HR,Damo | FSM | Founder,Damo | FSM | Marketing,Damo | FSM | Product,Damo | FSM | Sales,Damo | FSM | TA/HR,Damo | Supply Chain | Customer Success,Damo | Supply Chain | Founder,Damo | Supply Chain | Marketing,Damo | Supply Chain | Pre-Sales,Damo | Supply Chain | Product,Damo | Supply Chain | Sales,Damo | Supply Chain | TA/HR,Damo BD flip targets,Dan - Cyber Enrichment (India) - Customer Success,Dan - Cyber Enrichment (India) - Founder/CEO/Owner,Dan - Cyber Enrichment (India) - HR/People/TA,Dan - Cyber Enrichment (India) - Marketing,Dan - Cyber Enrichment (India) - Pre-Sales,Dan - Cyber Enrichment (India) - Product,Dan - Cyber Enrichment (India) - Sales,Dan BD leads july 23,Dan BD Sep 22,Dan Sequencing - CEO,Dan Sequencing - Customer Success,Dan Sequencing - HR/People,Dan Sequencing - Marketing,Dan Sequencing - Pre-Sales,Dan Sequencing - Product,Dan Sequencing - Sales,Dan Sequencing - TA,DAS Enrichment - CEO/Founder,DAS Enrichment - Marketing,DAS Enrichment - Presales,DAS Enrichment - Product,DAS Enrichment - Sales,DAS Enrichment - Tech,DAST BD,data analytics,Data security and compliance BD,DBR,DF AE outreach,DF client prospects,DF Contacts,DF NOV 23 outreach,DF VP Sales Engineering,Digital Identity Wallet,Digital Transformation,Doug | DevOps Series A | Customer Success,Doug | DevOps Series A | Founder,Doug | DevOps Series A | Marketing,Doug | DevOps Series A | Pre-Sales,Doug | DevOps Series A | Product,Doug | DevOps Series A | Sales,Doug | DevOps Series A | TA/HR,Doug | DevOps Series B | Customer Success,Doug | DevOps Series B | Founder,Doug | DevOps Series B | Marketing,Doug | DevOps Series B | Product,Doug | DevOps Series B | Sales,Doug | DevOps Series B | TA/HR,Doug Crunchbase - CEO,Doug Crunchbase - Sales,Drones- C-Level,Drones- VP & SD,Drupal Hiring Managers - London,Ecommerce Subscription Platform BD,EDR BD,Email security BD,EMEA CALL LIST Lindae,Emma BD,Encrypted Platform BD,ESG - BD,European start ups CYBER,Expense Management BD,Exposure Management BD,Financial Fraud Detection and AML BD,Financial Risk Solutions BD,Fleur - 1st BD Reach Out,Fleur - BD Ad chasing,Fleur - Target Client List,FNE 0 - Targets,FNE 1 - Leads,FNE 4 - Live,FP&A BD,Fran BD list AM,FSM America,FSM australia,FSM Europe,FSM UK,Go-To-Market Security BD,Hexagon | Challenge Cohort | Customer Success,Hexagon | Challenge Cohort | Founder/CEO,Hexagon | Challenge Cohort | Marketing,Hexagon | Challenge Cohort | Product,Hexagon | Challenge Cohort | Sales,Hexagon | Challenge Cohort | TA/HR,Hexagon Leaders,Human Risk Management BD,Hybris,IAM Mailshot,Identity Verification BD,international RFIC Managers,IOT Security,James - IoT/Saas BD Outreach List,Jim | Additive Manufacturing | Customer Success,Jim | Additive Manufacturing | Founder,Jim | Additive Manufacturing | Marketing,Jim | Additive Manufacturing | Product,Jim | Additive Manufacturing | Sales,Jim | Additive Manufacturing | TA/HR,Jim | Digital Twin SaaS | CEO - MD - President,Jim | Digital Twin SaaS | Customer Success,Jim | Digital Twin SaaS | Marketing,Jim | Digital Twin SaaS | Product,Jim | Digital Twin SaaS | Sales,Jim | Geospatial | Customer Success,Jim | Geospatial | Founder,Jim | Geospatial | Marketing,Jim | Geospatial | Pre-Sales,Jim | Geospatial | Product,Jim | Geospatial | Sales,Jim | Geospatial | TA/HR,Jim | Industrial Engineering | Customer Success,Jim | Industrial Engineering | Founder,Jim | Industrial Engineering | Marketing,Jim | Industrial Engineering | Product,Jim | Industrial Engineering | Sales,Jim | Industrial Engineering | TA/HR,Jim | Manufacturing SaaS | Founder,Jim | Manufacturing SaaS | Marketing,Jim | Manufacturing SaaS | Pre-Sales,Jim | Manufacturing SaaS | Product,Jim | Manufacturing SaaS | Sales,Jim | Manufacturing SaaS | TA/HR,Jim | Robotics | Customer Success,Jim | Robotics | Founder,Jim | Robotics | Marketing,Jim | Robotics | Pre-Sales,Jim | Robotics | Product,Jim | Robotics | Sales,Jim | Robotics | TA/HR,Jim Sequencing - Customer Success,Jim Sequencing - Marketing,Jim Sequencing - Product,Jim Sequencing - Sales,Jim Sequencing - TA/HR,Jim Sequencing - Technical,Jimbo - BD Flips,JN - IOT - 0 Targets,JN - IOT - 1 Leads,JN - IOT - 1.2 Leads Europe,JN - IOT - 2 Callback,JN - IOT - 3 Engaged,JN - IOT - 4 Active Clients,Lacework,LF BD List,LF NAC, IOT, ICS, OT BD-LIST,Lindae BD IoT Security,Lindae Cato Networks,Lindae Claroty,Lindae Cohesity,Lindae Crowdstrike list,Lindae EMEA Campaign General,Lindae Expel,Lindae Forcepoint,Lindae Illumio,Lindae Immersive Labs,Lindae List - New Funding - Team Build,Lindae UK BD list,Lindae Veracode,Live Roles,Magento Hiring Managers - London,mailshot list JB,Managed Services,March 2023 Leads,Martech - BD - US,martech uk BD,Max Waterhouse Spec List,MC - JAVASCRIPT MANAGERS,MC & JR combined PHP - London,MDR BD,Microsoft Managed Services,MPC target stakeholder,MPC- James Flygare / call list,MWC Barcelona 2022,NAC Vendor List,Network Digital Twin and Cybersec Platform BD,Networking Resellers,New 2020 - Javascript managers,Not Drones- Manager, VP, Director, C-Level,NYC/philly semicon,Offensive Security BD,Old terms clients,Open roles Dani US,OpenText,Payments - Strong Interviewed Candidates,Payments - Target CEO,Payments - Target Companies Contacts,Payments - Target Engineering,Payments - Target HR,Payments - Target Managing Directors,Payments - Target Marketing,Payments - Target Product,Payments - Target Sales,Payments - Target Strategy,Payments - Top 100 Contacts,Payments and Banking Infrastructure BD,Payments Enrichment List Data,Payments Infrastructure and compliance BD,Payroll, Commission, Benefits BD,PHP Hiring Managers - London,PHP Managers,Physical Security,Procure-To-Pay BD,Python Hiring Managers - London,RB 0 - Targets,RB 1 - Leads,React - Frontend,Reading tech comapnies,recruitment,relex,RSA Enrichment - CEO/Founder,RSA Enrichment - Customer Success,RSA Enrichment - Marketing,RSA Enrichment - Presales,RSA Enrichment - Product,RSA Enrichment - Sales,RSA Enrichment - Tech,saas/low-code Security,salart,Secrets Management SaaS BD,Secure Access BD,Security Automation BD,Semicon All companies,Semicon companies - Europe,semicon UK,Semiconductor Digital/ASIC,semiconductor/electronics BRISTOL,SH 0 - Targets,SH 1 - Leads,SH 2 - Callback,SH 3 - Chasing Engaged,Spend Management,SSPM BD,Supply Chain enrichment | CEO/Founder,Supply Chain enrichment | CS,Supply Chain enrichment | HR/TA,Supply Chain enrichment | Marketing,Supply Chain enrichment | Presales,Supply Chain enrichment | Product,Supply Chain enrichment | Sales,Supply Chain Security BD,Tax Compliance,Telco,Third Party Risk Management BD,Threat Detection and Response BD,Tom BD List,Tom USA  Campaign 1,Treasury Management BD,TValley .Net Hiring Manager,uk,uk semicon (NOT bristol),US List Lindae,USA Salary Report 2023,Versa AE,VP of Sales - Europe Call list,Vulnerability Management BD,Web Application Security and Testing BD,Web3/Blockchain Cyber Security BD,working capital BD,XDR BD'),
-(4,51057,2,'Location','text',null),
-(5,51057,2,'Phone Type','dropdown','Work,Personal,Other'),
-(6,51057,2,'Secondary Phones','phonenumber',null)
+(3, 1343554,3,'Status','multiselect','PSA Agreement,Regular/Warm Client,New Client/Cold,Archive/Bad Business!'),
+(4, 1343554,3,'Industries','multiselect','Building,Residential,Sub-Contractor,Civil Engineering,Consultancy,Architecture'),
+(5, 1343554,3,'Fees','number',''),
+(6,1343554,3,'Phone Number','phonenumber',null)
 ;
 
- -- JOB
+  -- CONTACT
 insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(1,51057,4,'Bonus','number',null),
-(2,51057,4,'Comp','text',null),
-(3,51057,4,'Fee','number',null),
-(4,51057,4,'Fee Type','dropdown','Percentage,Flat'),
-(5,51057,4,'Seniority Levels','multiselect','C Suite,Director,Entry,Mid Level,Senior,VP')
+(3,1343554,2,'Status','multiselect','New Lead/Cold,Follow Up Needed,Regular Contact,VIP Contact,Left Company,Active Employee,Hiring Manager'),
+(7,1343554,2,'Mobile','phonenumber',null),
+(8,1343554,2,'Name Prefix','text',null),
+(9,1343554,2,'Date Last Comment','date',null),
+(10,1343554,2,'Industries','multiselect','Administration,Building,Civil Engineering,Housing,M & E,Others,Private Practice')
+;
+
+-- JOB
+insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
+(1, 1343554,4,'Employment Type','multiselect','Permanent,Freelance,Fixed Term'),
+(2, 1343554,4,'Start Date','date',null),
+(3, 1343554,4,'Duration','text',null),
+(5,1343554,4,'Date Client Interview','date',null),
+(6,1343554,4,'Date End','date',null),
+(7,1343554,4,'Charge Rate','number',null),
+(8,1343554,4,'Pay Rate','number',null),
+(9,1343554,4,'Industries','multiselect','Administration,Architecture,Bid,Building,Civil Engineering,Commercial,Consultancy,Design,Engineering,Estimating,Housing,M & E,Operations,Others,Planning,Pre-Construction,Private Practice,Residential,Site Management,Sub-Contractor')
 ;
 
  """

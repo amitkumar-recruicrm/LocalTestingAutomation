@@ -1,0 +1,12 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+
+# Ignore all .zip files
+*.zip
+*.csv
+*xlsx
+
+
+planning.txt
