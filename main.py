@@ -8,8 +8,8 @@ from functions import *
 from urllib.parse import quote_plus
 # import sqlite3
 
-platform = 'sqlserver'
-# platform = 'MySQL'
+# platform = 'sqlserver'
+platform = 'MySQL'
 schema = 'dbo'
 
 #connecting to databases
@@ -18,10 +18,10 @@ if platform == 'MySQL':
     # f"mysql+mysqlconnector://{db_config['user']}:{encoded_password}@localhost/recruitcrm_normlized"
 elif platform == 'sqlserver':
     # for mac:
-    # driver = "/usr/local/lib/libmsodbcsql.17.dylib"
-    # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
+    driver = "/usr/local/lib/libmsodbcsql.17.dylib"
+    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
     # for windows
-    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={{ODBC Driver 17 for SQL Server}}")
+    # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={{ODBC Driver 17 for SQL Server}}")
 
 
 db_name = mysql_config['database'] if platform == 'MySQL' else sqlserver_config['database']
@@ -46,6 +46,13 @@ def get_all_tables_and_columns(engine):
 
 # tblcol = pd.DataFrame(get_all_tables_and_columns(engine))
 tblcol = get_all_tables_and_columns(engine)
+# print(tblcol)
+
+# Print
+
+# for idx, row in tblcol.iterrows():
+#     print(f"Table: {row['TABLE_NAME']}, Column: {row['COLUMN_NAME']}")
+
 
 # checklog_df - to store final result of all checks
 resPairsCandidate = []
@@ -151,7 +158,7 @@ if tblextrafields != '':
     with engine.connect() as connection:
         trans = connection.begin()
         try:
-            print('--- check point query not exists--')
+            print('--- check point - query not exists--')
             connection.execute(query)
             trans.commit()
         except:
@@ -166,6 +173,7 @@ if tblextrafields != '':
                     statement = statement.replace("INSERT INTO tblextrafields", f"INSERT INTO {db_name}.tblextrafields")
                 elif platform == 'sqlserver':
                     statement = statement.replace("INSERT INTO tblextrafields", f"INSERT INTO {schema}.tblextrafields")
+                print(statement)
                 connection.execute(text(statement + ';'))
                 connection.commit()  # Commit changes manually
         #     cursor.execute(statement)
@@ -178,28 +186,37 @@ if tblextrafields != '':
         5: 'candidate_custom_data',
         11: 'deal_custom_data',
     }
-    print("db_name: checkpoint 2")
+    # print("db_name: checkpoint 2")
         # Query to select all records from tblextrafields
     if platform == 'MySQL':
         select_query = text(f"SELECT * FROM {db_name}.tblextrafields")
     elif platform == 'sqlserver':
         select_query = text(f"SELECT * FROM {db_name}.{schema}.tblextrafields")
-    # cursor.execute(select_query)
-    # records = cursor.fetchall()
-    with engine.connect() as connection:
-        result = connection.execute(select_query)
-        records = result.fetchall()
+        # print('select_query')
+        # print(select_query)
     
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(select_query)
+            records = result.fetchall()
+    except:
+         print('Error occured while executing:',  select_query)
+
     for record in records:
         for check in extrafieldchecks[record[4]]:
-            exists = ((tblcol['TABLE_NAME']==table_name) & (tblcol['COLUMN_NAME']==col)).any()
-            if(check!=''):
-                col = 'custcolumn' + str(record[0])
+            # print('1: ', col, ' = ' , custom_tables[record[2]])
+            col = 'custcolumn' + str(record[0])
+            exists = ((tblcol['TABLE_NAME']==custom_tables[record[2]]) & (tblcol['COLUMN_NAME']==col)).any()
+            print(exists,' - ' ,custom_tables[record[2]]  )
+            print(col)
+            if(exists and check!=''):
                 check = check if check != 'dropdown' and check != 'multiselect' else check+':'+str(record[5])
                 res = globals()["checkif_" + check.split(':')[0]](check,db_name,custom_tables[record[2]], 'custcolumn' + str(record[0]), engine, platform,'dbo')
                 print("%s %s %s"%(col, check, res))
                 # resPairs.append((col, check, res))
                 logToExcel(custom_tables[record[2]], col, check, res)
+            elif(not exists):
+                 logToExcel(custom_tables[record[2]], col, check, 'Error: doesn''t exists')
 
     if platform == 'MySQL':
         drop_table_query = text("DROP TABLE IF EXISTS tblextrafields;")
@@ -212,6 +229,7 @@ if tblextrafields != '':
     with engine.connect() as connection:
         result = connection.execute(drop_table_query)
         connection.commit()
+        # print('drop')
 
     # cursor.close()
     connection.close()

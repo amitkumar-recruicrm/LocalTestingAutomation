@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Replace with your actual file path for xlsx file of Initial data download from retool.
-file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Brown and Wills. (Bullhorn)/Initial_data 60297 (Brown and Wills Recruitment Lt) 2.xlsx" 
+file_path = "/Users/amit/Documents/Work/Data Migrations/in progress/Ambacia (LOXO)/Initial_data 23625 (Ambacia) 2.xlsx" 
 
 # Load all sheets as a dictionary of DataFrames
 dfs = pd.read_excel(file_path, sheet_name=None)
@@ -14,11 +14,11 @@ candidate_data = pd.DataFrame({
     "migration_reserved1" : ['notNull','mandatory','unique'],
     "firstname" : ['notNull','mandatory','length:60'],
     "lastname" : ['','','length:60'],
-    "locality" : ['','','length:50'],
+    "locality" : ['','','length:100'],
     "city" : ['','','length:50'],
     "state" : ['','','length:50'],
     "country" : ['','','length:50'],
-    "slug" :      ['unique', 'notNull',''],
+    "slug" :      ['unique', 'notNull','mandatory'],
     "emailid"   : ['followsPattern:.*@.*[.].*:%_@%_.%','',''],
     "contactnumber" : ['followsPattern:[0-9]+:%[0-9]%','',''],
     "willingtorelocate": ['datatype:int','',''],
@@ -45,7 +45,7 @@ candidate_custom_field_data = pd.DataFrame({
 
 company_data = pd.DataFrame({
     "createdon" : ['notNull','',''],
-    "slug" : ['unique', 'notNull',''],
+    "slug" : ['unique', 'notNull','mandatory'],
     "industryid" : ['datatype:int', '',''],
     "companyname" : ['mandatory', 'notNull','length:300'],
     "address": ['length:500','',''],
@@ -69,7 +69,7 @@ contact_data = pd.DataFrame({
     "firstname" : ['notNull','mandatory','length:60'],
     "lastname" : ['','','length:60'],
     "city" : ['','','length:50'],
-    "slug" :      ['unique', 'notNull',''],
+    "slug" :      ['unique', 'notNull','mandatory'],
     "email"   : ['followsPattern:.*@.*[.].*:%_@%_.%','',''],
     "contactnumber" : ['followsPattern:[0-9]+:%[0-9]%','',''],
     "designation": ['length:100','',''],
@@ -95,7 +95,7 @@ job_data = pd.DataFrame({
     "state" : ['','','length:50'],
     "country" : ['','','length:50'],
     "postalcode" : ['','','length:20'],
-    "slug" :      ['unique', 'notNull',''],
+    "slug" :      ['unique', 'notNull','mandatory'],
     "designation": ['length:100','',''],
     "address": ['length:500','',''],
     "salarytype": ['dropdown:annual,monthly,weekly,daily,hourly','',''],
@@ -192,6 +192,7 @@ extrafieldchecks = pd.DataFrame({
     "number" : ['datatype:float', ''],
     "date" : ['datatype:int', ''],
     "longtext" : ['length:5000', ''],
+    "checkbox" : ['dropdown:0,1', ''],
 })
 
 tables = {
@@ -207,66 +208,75 @@ tables = {
     "deal": deal_data,
     "deal_custom_data": deal_custom_field_data,
     "note": note_data,
-    "note_candidate": note_data,
-    "note_company": note_data,
-    "note_contact": note_data,
-    "note_job": note_data,
-    "note_deal": note_data,
+    # "note_2": note_data,
+    # "note_candidate": note_data,
+    # "note_company": note_data,
+    # "note_contact": note_data,
+    # "note_job": note_data,
+    # "note_deal": note_data,
 }
 
 #  ⚠️ Insert statements should only include columns that are present in the database.
 tblextrafields = """
 
--- brown and wills
+-- ambacia - loxo
 
-insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(2, 1343554,5,'Notice','dropdown','3 Months,4 Weeks,1 Week,IMMEDIATE,6 Months,1 Month,2 Weeks,2 Months,3 Weeks'),
-(1, 1343554,5,'Industry','multiselect','Building,Civils,Residential,Social Housing,M & E,Modular,Consultancy,Sub-Contractor'),
-(3, 1343554,5,'Tags','multiselect','Education,Health,Commerial,Industrial,Retail,Leisure,Heritage,MOD,MOJ,Major Projects,Highrise,Frameworks,Refurbs,Smallworks,Fit-Out,H & S,Maintenance,Joinery,Brickwork,Architecture,Nuclear,Infrastructure,BIM,Conquest,ASTSA,Building Regs,3DModelling,Tier 1,Medium Contractor,Astra,Bridges,Building,Car Showroom,Carehome,Civils,Cleansed,CSCS,Data centres,Datacentres,Electrical,Energy,Excavation,Groundworks,Health and Safety,Heavy Civils,High Rise,Hotel,HVAC,Listed Building,Luxury Housing,Major Project,Marine,Mechanical,MEP,Modular,Office,Pipelines,Power,Public Health,Rail,Refurb,Regional,Regional Contractor,Remove from database,Renewables,Residential,Sheds,Small Contractor,Small Works,SMSTS,Social Houseing,Social Housing,Social Housing (New Build),Social Housing (Refurb),Spec Housing,Trades,Universities,University,Xmas 2023 KIT'),
-(5, 1343554,5,'Other Source','dropdown','LinkedIN,CV Library Search,Database Search,Referral,Previous Placement,Website Response,Client Contact,Already KnownData,ContactOut,CV Library,CV Library Ad,CV Library Watchdog,Glennigans,Headhunt,Indeed,Other,Total Jobs,Web Registration'),
-(8, 1343554,5,'Other Info','longtext',null),
-(9, 1343554,5,'Status','dropdown','To be confirmed,Active,Keep in touch,Immediate,Unknown,Asked not to be contacted'),
-(10, 1343554,5,'Day Rate','number',null),
-(11, 1343554,5,'Desired Job','longtext',null),
-(12,1343554,5,'Phone','text',null), 
-(13,1343554,5,'WorkPhone','text',null),
-(14,1343554,5,'Name Prefix','text',null),
-(15,1343554,5,'Date Last Comment','date',null),
-(12,1343554,5,'Phone','text',null), 
-(13,1343554,5,'WorkPhone','text',null),
-(14,1343554,5,'Name Prefix','text',null),
-(15,1343554,5,'Date Last Comment','date',null),
-(16,1343554,5,'Other Contact Status','text',null)
+INSERT INTO tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
+(1,23625,5,'Email Type','dropdown','Work,Personal'),
+(2,23625,5,'Work Emails','text',null),
+(3,23625,5,'Personal Emails','text',null),
+(4,23625,5,'Phone Type','dropdown','Work,Personal'),
+(5,23625,5,'Work Phones','phonenumber',null),
+(6,23625,5,'Personal Phones','phonenumber',null),
+(7,23625,5,'Rating','dropdown','✅ Recommended ✅,❌ Not Recommended ❌,❓ Recommended With Restrain ❓,🔥 Highly Recommended 🔥,🚩 Black List 🚩'),
+(8,23625,5,'Lists','multiselect','.NET B2B,Agents 1,Android b2b,B2B Aliens,B2B Product,Corporate,DevOps B2B,Ecommerce,Frontend B2B,Germany Targets,iOS B2B,Netherlands Targets,Newsletter,PHP B2B,QA B2B'),
+(9,23625,5,'Record Type','multiselect','Candidate,Contact'),
+(10,23625,5,'Comp','number',null)
 ;
 
-
- -- COMPANY
-insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(3, 1343554,3,'Status','multiselect','PSA Agreement,Regular/Warm Client,New Client/Cold,Archive/Bad Business!'),
-(4, 1343554,3,'Industries','multiselect','Building,Residential,Sub-Contractor,Civil Engineering,Consultancy,Architecture'),
-(5, 1343554,3,'Fees','number',''),
-(6,1343554,3,'Phone Number','phonenumber',null)
+-- COMPANY
+INSERT INTO tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
+(1,23625,3,'Global Status','dropdown','Current Client,Dead Opportunity,Do Not Prospect,In Progress'),
+(2,23625,3,'Contact Person','text',null),
+(3,23625,3,'Contact Person 2','text',null),
+(4,23625,3,'Linkedin Profile 2','text',null),
+(5,23625,3,'Email','text',null),
+(6,23625,3,'Email 2','text',null),
+(7,23625,3,'Position','text',null),
+(8,23625,3,'Position 2','text',null),
+(9,23625,3,'Status','dropdown','Active,Black List,Contacted,Meeting,Not In Business,Not Interested,Not Preferred,On Hold,Potential,Qualified Lead,Sent Offer'),
+(10,23625,3,'Phones','phonenumber',null),
+(11,23625,3,'Lists','multiselect','Dev Teams for Luminary,Luminary UK,Luminary US,Luminary/Other'),
+(12,23625,3,'Scope of activities','text',null),
+(13,23625,3,'All Addresses','longtext',null)
 ;
 
-  -- CONTACT
-insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(3,1343554,2,'Status','multiselect','New Lead/Cold,Follow Up Needed,Regular Contact,VIP Contact,Left Company,Active Employee,Hiring Manager'),
-(7,1343554,2,'Mobile','phonenumber',null),
-(8,1343554,2,'Name Prefix','text',null),
-(9,1343554,2,'Date Last Comment','date',null),
-(10,1343554,2,'Industries','multiselect','Administration,Building,Civil Engineering,Housing,M & E,Others,Private Practice')
+-- CONTACT
+INSERT INTO tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
+(1,23625,2,'Email Type','dropdown','Work,Personal'),
+(2,23625,2,'Secondary Emails','text',null),
+(3,23625,2,'Lists','multiselect','Agents 1,Apollo Croatia,CCI France,Corporate,Germany Targets,Incubators,Netherlands Targets,Start ups'),
+(4,23625,2,'Rating','dropdown','✅ Recommended ✅,🔥 Highly Recommended 🔥'),
+(5,23625,2,'Phone Type','dropdown','Work,Personal'),
+(6,23625,2,'Work Phones','phonenumber',null),
+(7,23625,2,'Personal Phones','phonenumber',null),
+(8,23625,2,'Record Type','multiselect','Candidate,Contact')
 ;
 
--- JOB
-insert into tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
-(1, 1343554,4,'Employment Type','multiselect','Permanent,Freelance,Fixed Term'),
-(2, 1343554,4,'Start Date','date',null),
-(3, 1343554,4,'Duration','text',null),
-(5,1343554,4,'Date Client Interview','date',null),
-(6,1343554,4,'Date End','date',null),
-(7,1343554,4,'Charge Rate','number',null),
-(8,1343554,4,'Pay Rate','number',null),
-(9,1343554,4,'Industries','multiselect','Administration,Architecture,Bid,Building,Civil Engineering,Commercial,Consultancy,Design,Engineering,Estimating,Housing,M & E,Operations,Others,Planning,Pre-Construction,Private Practice,Residential,Site Management,Sub-Contractor')
+ -- JOB
+INSERT INTO tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
+(1,23625,4,'Seniority Levels','multiselect','Entry,Mid Level,Senior,Director'),
+(2,23625,4,'Opened date','date',null),
+(3,23625,4,'Selection Process','text',null)
 ;
+
+ -- deals
+INSERT INTO tblextrafields(columnid,accountid,entitytypeid,extrafieldname,extrafieldtype,defaultvalue) values
+(1,23625,11,'Workflow','dropdown','IT Recruitment 2025,LuminaryIT 2024,Recruitment 2023,Recruitment 2024'),
+(2,23625,11,'Currency','dropdown','EUR'),
+(3,23625,11,'Job type','dropdown','Full Time'),
+(4,23625,11,'Salary Currency','dropdown','EUR')
+;
+
 
  """

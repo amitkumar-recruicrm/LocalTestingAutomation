@@ -1,5 +1,6 @@
 import pandas as pd
 from sqlalchemy import text
+from sqlalchemy.exc import ProgrammingError
 
 type_mapping = {
     'int': int,
@@ -89,9 +90,7 @@ def checkif_multiselect(check,db_name, table_name, column_name, engine, db_type 
                     TRIM(SUBSTRING_INDEX({column_name}, ',', 1)) AS value,
                     SUBSTRING({column_name}, LOCATE(',', {column_name}) + 1) AS remaining
                 FROM {db_name}.{table_name}
-                
                 UNION ALL
-                
                 -- Recursive extraction of remaining values
                 SELECT 
                     import_slug,
@@ -124,5 +123,16 @@ def checkif_multiselect(check,db_name, table_name, column_name, engine, db_type 
             WHERE value NOT IN ('{condition}')
         """
     
-    df = pd.read_sql(query, engine)
-    return df[column_name].empty
+    df = None
+    try:
+        df = pd.read_sql(query, engine)
+    except ProgrammingError as e:
+        print(e.orig)
+    except Exception as e:
+        print('Error:', e )
+
+    # return df[column_name].empty
+    if df is not None and column_name in df.columns:
+        return df[column_name].empty
+    else:
+        return False
