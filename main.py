@@ -1,16 +1,14 @@
 import pyodbc
+import os
 import pandas as pd
 from sqlalchemy import create_engine, text
 # import urllib.parse
 from conditions import *
-from config import mysql_config, sqlserver_config
+from config import mysql_config, sqlserver_config, platform, schema
 from functions import * 
 from urllib.parse import quote_plus
 # import sqlite3
 
-# platform = 'sqlserver'
-platform = 'MySQL'
-schema = 'dbo'
 
 #connecting to databases
 if platform == 'MySQL':
@@ -166,18 +164,28 @@ if tblextrafields != '':
             raise
 
   # Execute each statement separately
-    for statement in tblextrafields.strip().split(';'):
-        if statement.strip():  # Check if the statement is not empty
-            with engine.connect() as connection:
-                if platform == 'MySQL':
-                    statement = statement.replace("INSERT INTO tblextrafields", f"INSERT INTO {db_name}.tblextrafields")
-                elif platform == 'sqlserver':
-                    statement = statement.replace("INSERT INTO tblextrafields", f"INSERT INTO {schema}.tblextrafields")
-                print(statement)
-                connection.execute(text(statement + ';'))
-                connection.commit()  # Commit changes manually
+    # for statement in tblextrafields.strip().split(';'):
+    #     if statement.strip():  # Check if the statement is not empty
+    #         with engine.connect() as connection:
+    #             if platform == 'MySQL':
+    #                 statement = statement.replace("INSERT INTO tblextrafields", f"INSERT INTO {db_name}.tblextrafields")
+    #             elif platform == 'sqlserver':
+    #                 statement = statement.replace("INSERT INTO tblextrafields", f"INSERT INTO {schema}.tblextrafields")
+    #             print(statement)
+    #             connection.execute(text(statement + ';'))
+    #             connection.commit()  # Commit changes manually
         #     cursor.execute(statement)
         #  connection.commit()
+
+    
+    with engine.connect() as connection:
+        if platform == 'MySQL':
+            statement = tblextrafields.replace("INSERT INTO tblextrafields", f"INSERT INTO {db_name}.tblextrafields")
+        elif platform == 'sqlserver':
+            statement = tblextrafields.replace("INSERT INTO tblextrafields", f"INSERT INTO {schema}.tblextrafields")
+        print(statement)
+        connection.execute(text(statement))
+        connection.commit()
 
     custom_tables = {
         2: 'contact_custom_data',
@@ -234,7 +242,25 @@ if tblextrafields != '':
     # cursor.close()
     connection.close()
 
-excel_path = f"{db_name}_output.xlsx"
+def get_unique_filename(file_path):
+    """
+    Returns a unique file path by appending (1), (2), ... if the file already exists.
+    """
+    base, ext = os.path.splitext(file_path)
+    counter = 1
+    new_file_path = file_path
+
+    while os.path.exists(new_file_path):
+        new_file_path = f"{base}({counter}){ext}"
+        counter += 1
+
+    return new_file_path
+
+
+excel_path = f"Outputs/{db_name}_output.xlsx"
+os.makedirs(os.path.dirname(excel_path), exist_ok=True)
+# get unique filename
+excel_path = get_unique_filename(excel_path)
 with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
     pd.DataFrame(resPairsCandidate, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Candidate', index=False) 
     pd.DataFrame(resPairsCompany, columns=['Column', 'Check', 'Result']).to_excel(writer, sheet_name='Company', index=False) 
@@ -245,8 +271,6 @@ with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
     pd.DataFrame(resPairsNote, columns=['Column', 'Check', 'Table_Name' ,'Result']).to_excel(writer, sheet_name='note', index=False)   
     # resPairsCompany.to_excel(writer, sheet_name='Contact', index=False)   # Sheet 2
     # resPairsJob.to_excel(writer, sheet_name='Job', index=False)   # Sheet 2
-
-
 
 
 
