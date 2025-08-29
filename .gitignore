@@ -11,3 +11,7 @@ __pycache__/
 
 planning.txt
 Outputs/
+
+
+github_ssh_key
+github_ssh_key.pub

@@ -16,10 +16,10 @@ if platform == 'MySQL':
     # f"mysql+mysqlconnector://{db_config['user']}:{encoded_password}@localhost/recruitcrm_normlized"
 elif platform == 'sqlserver':
     # for mac:
-    driver = "/usr/local/lib/libmsodbcsql.17.dylib"
-    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
-    # for windows
-    # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={{ODBC Driver 17 for SQL Server}}")
+    # driver = "/usr/local/lib/libmsodbcsql.17.dylib"
+    # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
+    # for WINDOWS:
+    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver=ODBC+Driver+17+for+SQL+Server")
 
 
 db_name = mysql_config['database'] if platform == 'MySQL' else sqlserver_config['database']
