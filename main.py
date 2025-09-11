@@ -37,7 +37,7 @@ def get_all_tables_and_columns(engine):
         query = f"""
             SELECT TABLE_NAME, COLUMN_NAME
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_CATALOG = '{db_name}'
+            WHERE TABLE_CATALOG = '{db_name}' and TABLE_SCHEMA = '{schema}'
             """
     # print(pd.read_sql(query, conn))
     return pd.read_sql(query, engine)
@@ -88,15 +88,17 @@ def logToExcel(tblname, col, check, res):
 
 checklog_df = pd.DataFrame()
 
-# This loop checks all non-custom fields ??
+# This loop checks all non-custom fields -
 for table_name, df in tables.items():
     print('------------'+table_name+'-------------')
     for col, checks in df.items():
         exists = ((tblcol['TABLE_NAME']==table_name) & (tblcol['COLUMN_NAME']==col)).any()
+        # print(tblcol['TABLE_NAME'])
+        # print('exists: ', exists)
         if(exists):
             for check in checks:
                 if((check != '') & (check != 'mandatory')):
-                    res = globals()["checkif_" + check.split(':')[0]](check,db_name,table_name, col, engine, platform,'dbo')
+                    res = globals()["checkif_" + check.split(':')[0]](check,db_name,table_name, col, engine, platform,schema)
                     print("%s %s %s"%(col, check, res))
                     logToExcel(table_name, col, check, res)
                     # resPairs.append((col, check, res))
@@ -108,7 +110,7 @@ for table_name, df in tables.items():
 
 
 # # for custom fields checking through tblextrafields query
-if tblextrafields != '':
+if tblextrafields.strip():
 
     if platform == 'MySQL':
     # Define the SQL query to create the table
@@ -219,7 +221,7 @@ if tblextrafields != '':
             print(col)
             if(exists and check!=''):
                 check = check if check != 'dropdown' and check != 'multiselect' else check+':'+str(record[5])
-                res = globals()["checkif_" + check.split(':')[0]](check,db_name,custom_tables[record[2]], 'custcolumn' + str(record[0]), engine, platform,'dbo')
+                res = globals()["checkif_" + check.split(':')[0]](check,db_name,custom_tables[record[2]], 'custcolumn' + str(record[0]), engine, platform,schema)
                 print("%s %s %s"%(col, check, res))
                 # resPairs.append((col, check, res))
                 logToExcel(custom_tables[record[2]], col, check, res)

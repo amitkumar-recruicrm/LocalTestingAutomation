@@ -175,12 +175,6 @@ note_data = pd.DataFrame({
     "accountid": ['notNull','mandatory','dropdown:'+",".join(dfs["Account_plan"]["accountid"].astype(str).tolist())],
 })
 
-# tables = {
-#     "tblcandidate": candidate_data, 
-#     "candidate_custom_fields_t": candidate_custom_field_data,
-#     "tblcompany": company_data
-# }
-
 extrafieldchecks = pd.DataFrame({
     "dropdown" : ['dropdown',''],
     "multiselect" : ['multiselect', ''],
@@ -211,6 +205,6 @@ tables = {
     "note_company": note_data,
     "note_contact": note_data,
     "note_job": note_data,
-    # "note_deal": note_data,
+    "note_deal": note_data,
 }
 
