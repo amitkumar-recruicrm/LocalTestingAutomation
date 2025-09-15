@@ -17,10 +17,10 @@ candidate_data = pd.DataFrame({
     "state" : ['','','length:50'],
     "country" : ['','','length:50'],
     "slug" :      ['unique', 'notNull','mandatory'],
-    "emailid"   : ['followsPattern:.*@.*[.].*:%_@%_.%','',''],
+    "emailid"   : ['followsPattern:.*@.*[.].*:%_@%_.%_','',''],
     "contactnumber" : ['followsPattern:[0-9]+:%[0-9]%','',''],
     "willingtorelocate": ['datatype:int','',''],
-    "genderid": ['dropdown:0,1,2','',''],
+    "genderid": ['dropdown:0,1,2,3,4','',''],
     "salarytype": ['dropdown:1,2,3,4,5','',''],
     "currentsalary": ['datatype:float','',''],
     "salaryexpectation": ['datatype:float','',''],
@@ -184,7 +184,10 @@ extrafieldchecks = pd.DataFrame({
     "number" : ['datatype:float', ''],
     "date" : ['datatype:int', ''],
     "longtext" : ['length:5000', ''],
-    "checkbox" : ['dropdown:0,1', ''],
+    "checkbox" : ['dropdown:0,1', 'notNull'],
+    "file" : ['', ''],
+    "social_profile" : ['','']
+    # "social_profile" : ['followsPattern:^(?:https?:\/\/|www\.)[^.]+\..{2,}$:^(?:https?:\/\/|www\.)[^.]+\..{2,}$', ''],
 })
 
 tables = {

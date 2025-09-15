@@ -1,10 +1,11 @@
 import pyodbc
 import os
+import sys
 import pandas as pd
 from sqlalchemy import create_engine, text
 # import urllib.parse
 from conditions import *
-from config import mysql_config, sqlserver_config, platform, schema
+from config import mysql_config, sqlserver_config, postgres_config, platform, schema
 from functions import * 
 from urllib.parse import quote_plus
 # import sqlite3
@@ -20,9 +21,19 @@ elif platform == 'sqlserver':
     # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
     # for WINDOWS:
     engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver=ODBC+Driver+17+for+SQL+Server")
+elif platform == 'postgres':
+    engine = create_engine(
+        f"postgresql+psycopg2://{postgres_config['user']}:{quote_plus(postgres_config['password'])}@{postgres_config['server']}/{postgres_config['database']}"
+    )
+else: 
+    print("❌ Error: Please provide correct/allowed values for platform")
+    sys.exit(1)
 
 
-db_name = mysql_config['database'] if platform == 'MySQL' else sqlserver_config['database']
+db_name = ''
+if platform == 'MySQL': db_name = mysql_config['database'] 
+elif platform == 'sqlserver': db_name = sqlserver_config['database']
+elif platform == 'postgres': db_name = postgres_config['database']
 
 
 def get_all_tables_and_columns(engine):
@@ -39,12 +50,19 @@ def get_all_tables_and_columns(engine):
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_CATALOG = '{db_name}' and TABLE_SCHEMA = '{schema}'
             """
+    elif platform == 'postgres':
+        query = f"""
+            SELECT TABLE_NAME, COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_CATALOG = '{db_name}' and TABLE_SCHEMA = '{schema}'
+            """
     # print(pd.read_sql(query, conn))
     return pd.read_sql(query, engine)
 
 # tblcol = pd.DataFrame(get_all_tables_and_columns(engine))
 tblcol = get_all_tables_and_columns(engine)
-# print(tblcol)
+tblcol.columns = [c.upper() for c in tblcol.columns]
+print(tblcol)
 
 # Print
 
@@ -61,13 +79,13 @@ resPairsDeal = []
 resPairsNote = []
 resPairsAssignment = []
 
-def checkIfExists(tblname, colname, engine):
-    if platform == 'MySQL':
-        query = f"select column_name from information_schema.columns where column_name = '{colname}' and table_name = '{tblname}' and table_schema = '{db_name}';"
-    elif platform == 'sqlserver':
-        query = f"select column_name from information_schema.columns where column_name = '{colname}' and table_name = '{tblname}' and table_catalog = '{db_name}' and table_schema = '{schema}';"
-    df = pd.read_sql(query, engine)
-    return not ( df['column_name'].empty )
+# def checkIfExists(tblname, colname, engine):
+#     if platform == 'MySQL':
+#         query = f"select column_name from information_schema.columns where column_name = '{colname}' and table_name = '{tblname}' and table_schema = '{db_name}';"
+#     elif platform == 'sqlserver' or platform == 'postgres':
+#         query = f"select column_name from information_schema.columns where column_name = '{colname}' and table_name = '{tblname}' and table_catalog = '{db_name}' and table_schema = '{schema}';"
+#     df = pd.read_sql(query, engine)
+#     return not ( df['column_name'].empty )
 
 def logToExcel(tblname, col, check, res):
     if tblname == 'candidate' or tblname == 'candidate_custom_data':
@@ -154,6 +172,22 @@ if tblextrafields.strip():
                         )
                     END
         """)
+    elif platform == 'postgres':
+    # Define the SQL query to create the table
+        drop_table_query = text(f"DROP TABLE IF EXISTS {schema}.tblextrafields;")
+        with engine.connect() as connection:
+            result = connection.execute(drop_table_query)
+            connection.commit()
+        query = text(f"""
+        CREATE TABLE IF NOT EXISTS {schema}.tblextrafields (
+            columnid INTEGER,
+            accountid INTEGER,
+            entitytypeid INTEGER,
+            extrafieldname TEXT,
+            extrafieldtype TEXT,
+            defaultvalue TEXT
+        )
+        """)
 
     with engine.connect() as connection:
         trans = connection.begin()
@@ -183,7 +217,7 @@ if tblextrafields.strip():
     with engine.connect() as connection:
         if platform == 'MySQL':
             statement = tblextrafields.replace("INSERT INTO tblextrafields", f"INSERT INTO {db_name}.tblextrafields")
-        elif platform == 'sqlserver':
+        elif platform == 'sqlserver' or platform == 'postgres':
             statement = tblextrafields.replace("INSERT INTO tblextrafields", f"INSERT INTO {schema}.tblextrafields")
         print(statement)
         connection.execute(text(statement))
@@ -202,6 +236,8 @@ if tblextrafields.strip():
         select_query = text(f"SELECT * FROM {db_name}.tblextrafields")
     elif platform == 'sqlserver':
         select_query = text(f"SELECT * FROM {db_name}.{schema}.tblextrafields")
+    elif platform == 'postgres':
+        select_query = text(f"SELECT * FROM {schema}.tblextrafields")
         # print('select_query')
         # print(select_query)
     
@@ -217,7 +253,7 @@ if tblextrafields.strip():
             # print('1: ', col, ' = ' , custom_tables[record[2]])
             col = 'custcolumn' + str(record[0])
             exists = ((tblcol['TABLE_NAME']==custom_tables[record[2]]) & (tblcol['COLUMN_NAME']==col)).any()
-            print(exists,' - ' ,custom_tables[record[2]]  )
+            print(exists,' - ' ,custom_tables[record[2]] )
             print(col)
             if(exists and check!=''):
                 check = check if check != 'dropdown' and check != 'multiselect' else check+':'+str(record[5])
