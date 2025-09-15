@@ -48,9 +48,9 @@ def checkif_followsPattern(check,db_name, table_name, column_name, engine, db_ty
     elif db_type == 'sqlserver':
         query = f"select {column_name} from {db_name}.{schema}.{table_name} where {column_name} not like '{check.split(':')[2]}' and {column_name} != ''"
     elif db_type == 'postgres':
-        query = text(f"select {column_name} from {schema}.{table_name} where {column_name} !~ :pattern and {column_name} != ''")
+        query = text(f"select {column_name} from {schema}.{table_name} where {column_name} !~ '{check.split(':')[1]}' and {column_name} != ''")
         print(query)
-    df = pd.read_sql(query, engine, params={'pattern': check.split(':')[1]})
+    df = pd.read_sql(query, engine)
     return df[column_name].empty
 
 # checks if all the values are of a particular datatype or not
@@ -67,6 +67,17 @@ def checkif_datatype(check,db_name, table_name, column_name, engine, db_type = '
         # return df[column_name].apply(lambda x: isinstance(x, float)).all() # and df[column_name].apply(lambda x: str(x).split('.')[1] if '.' in str(x) else '').str.len() <= 2  
         return df[column_name].apply(lambda x: isinstance(x, (int, float)) and round(float(x), 2) == float(x)).all()
     return df[column_name].apply(lambda x: isinstance(x, check_type)).all()
+
+# checks if all the values non-values are integer with 10 digits
+def checkif_date(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):
+    if db_type == 'MySQL':
+        query = f"select {column_name} from {db_name}.{table_name} where {column_name} is not null and (char_length({column_name}) != 10 or {column_name} regexp '[^0-9]');"
+    elif db_type == 'sqlserver':
+        query = f"select {column_name} from {db_name}.{schema}.{table_name} where {column_name} is not null and (len({column_name}) != 10 or {column_name} like '%[^0-9]%');"
+    elif db_type == 'postgres':
+        query = f"select {column_name} from {schema}.{table_name} where {column_name} is not null and (length({column_name}::text) != 10 or {column_name}::text ~ '[^0-9]');"
+    df = pd.read_sql(query, engine)
+    return df[column_name].empty
 
 # returns true if column only contains provided values. (single value)
 def checkif_dropdown(check,db_name, table_name, column_name, engine, db_type = 'sqlserver', schema ='dbo'):

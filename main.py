@@ -17,10 +17,10 @@ if platform == 'MySQL':
     # f"mysql+mysqlconnector://{db_config['user']}:{encoded_password}@localhost/recruitcrm_normlized"
 elif platform == 'sqlserver':
     # for mac:
-    # driver = "/usr/local/lib/libmsodbcsql.17.dylib"
-    # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
+    driver = "/usr/local/lib/libmsodbcsql.17.dylib"
+    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver={quote_plus(driver)}")
     # for WINDOWS:
-    engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver=ODBC+Driver+17+for+SQL+Server")
+    # engine = create_engine(f"mssql+pyodbc://{sqlserver_config['user']}:{quote_plus(sqlserver_config['password'])}@localhost/{sqlserver_config['database']}?driver=ODBC+Driver+17+for+SQL+Server")
 elif platform == 'postgres':
     engine = create_engine(
         f"postgresql+psycopg2://{postgres_config['user']}:{quote_plus(postgres_config['password'])}@{postgres_config['server']}/{postgres_config['database']}"

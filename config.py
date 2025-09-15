@@ -29,9 +29,9 @@ platform = 'postgres'
 schema = 'cleaned'
 
 # Replace with your actual file path for xlsx file of Initial data download from retool.
-# file_path = "/Users/amit/Documents/Work/Data Migrations/completed/KMR Rec (JobAdder)/Initial_data 70963 (KMR Recruitment ) 4.xlsx" 
+file_path = "/Users/amit/Documents/Work/Data Migrations/completed/KMR Rec (JobAdder)/Initial_data 70963 (KMR Recruitment ) 4.xlsx" 
 # file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Ambacia (LOXO)/Initial_data 23625 (Ambacia) 2.xlsx"
-file_path = "/Users/amit/Documents/Work/Data Migrations/completed/household staffing (CATS)/Initial_data 62825 (householdstaffing) 5.xlsx"
+# file_path = "/Users/amit/Documents/Work/Data Migrations/completed/household staffing (CATS)/Initial_data 62825 (householdstaffing) 5.xlsx"
 # file_path = "/Users/amit/Documents/Work/Data Migrations/completed/Carl lens Search partner (careix)/Initial_data 62124 (Carl Lens Search Partners BV) (1).xlsx"
 
 # Add all entries in a single insert statement - This is used for custom fields type and values #
